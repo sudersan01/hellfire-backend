@@ -1,17 +1,20 @@
 #[macro_use]
 extern crate rocket;
 
-use std::env;
+use std::{
+    env,
+    net::{IpAddr, Ipv4Addr},
+};
 
 use mongodb::options::ClientOptions;
 use rocket::Config;
 use utils::cors::CorsFairing;
 
 mod auth;
+mod guards;
 mod models;
 mod posts;
 mod utils;
-mod guards;
 
 #[derive(Debug, Clone)]
 pub struct DbOptions {
@@ -24,16 +27,14 @@ impl DbOptions {
             Ok(val) => {
                 println!("Variable MONGO_URL found");
                 val
-            },
+            }
             Err(e) => {
                 println!("Variable MONGO_URL missing, using default, err is {}", &e);
                 "mongodb://localhost:27017/".to_string()
             }
         };
         DbOptions {
-            options: ClientOptions::parse(opts)
-                .await
-                .unwrap(),
+            options: ClientOptions::parse(opts).await.unwrap(),
         }
     }
 }
@@ -46,7 +47,7 @@ async fn rocket() -> _ {
         Ok(val) => {
             println!("Variable PORT found");
             val.parse().unwrap()
-        },
+        }
         Err(e) => {
             println!("Variable PORT missing, using default, err is {}", &e);
             8080
@@ -60,7 +61,7 @@ async fn rocket() -> _ {
         .attach(CorsFairing)
         .configure(Config {
             port,
-            // address: IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0),),
+            address: IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)),
             ..Config::debug_default()
         });
     rocket
