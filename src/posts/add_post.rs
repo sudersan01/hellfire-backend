@@ -1,4 +1,4 @@
-use mongodb::Client;
+use mongodb::{Client, bson::doc};
 use rocket::{http::Status, serde::json::Json, State};
 use regex::Regex;
 
@@ -37,6 +37,14 @@ pub async fn add_post(
     let db = Client::with_options(opt.options.clone())?
         .database("hellfire")
         .collection::<Post>("posts");
+
+    if db.find_one(doc! {"slug": &post.slug}, None).await?.is_some() {
+        return Err(HFError::CustomError(ErrorMessage {
+            status: Some(Status::BadRequest),
+            hint: Some("The given slug already exists".to_string()),
+            message: "invalid slug".to_string(),
+        }));
+    }
     let res = db.insert_one(&post.into_inner(), None).await.unwrap();
 
     Ok(HFResponse {
