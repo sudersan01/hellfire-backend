@@ -34,7 +34,7 @@ pub async fn get_all_posts(opts: &State<DbOptions>) -> HFResult<GetAllPostRespon
                 }))
                 .build(),
         )
-        .await.unwrap();
+        .await?;
     let mut result = Vec::<Document>::new();
     while let Some(mut x) = res.try_next().await? {
         x.insert("author", "dhukka");

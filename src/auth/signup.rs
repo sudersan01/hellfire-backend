@@ -43,7 +43,7 @@ pub async fn signup(
             &salt,
         )?
         .to_string();
-    let parsed_hash = PasswordHash::new(&password_hash).unwrap();
+    let parsed_hash = PasswordHash::new(&password_hash)?;
     if argon2
         .verify_password(&(user.password).as_bytes(), &parsed_hash)
         .is_err()

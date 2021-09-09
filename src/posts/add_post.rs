@@ -45,7 +45,7 @@ pub async fn add_post(
             message: "invalid slug".to_string(),
         }));
     }
-    let res = db.insert_one(&post.into_inner(), None).await.unwrap();
+    let res = db.insert_one(&post.into_inner(), None).await?;
 
     Ok(HFResponse {
         status: None,

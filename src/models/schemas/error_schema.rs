@@ -22,17 +22,32 @@ pub struct ErrorMessage {
     #[serde(skip)]
     pub status: Option<Status>,
     #[serde(skip)]
-    pub hint: Option<String>
+    pub hint: Option<String>,
 }
 
 impl<'r> Responder<'r, 'static> for HFError {
     fn respond_to(self, _: &'r rocket::Request<'_>) -> rocket::response::Result<'static> {
         let mes = match self {
             HFError::CustomError(val) => val,
-            _ => ErrorMessage {
-                message: "Internal Server Error".to_string(),
-                status: None,
-                hint: Some("An Unknown Error occurred, please report it to proper people".to_string())
+            HFError::MongoError(err) => {
+                println!("   >> {:?}", &err);
+                ErrorMessage {
+                    message: "Internal Server Error".to_string(),
+                    status: None,
+                    hint: Some(
+                        "An Unknown Error occurred, please report it to proper people".to_string(),
+                    ),
+                }
+            },
+            HFError::HashError(err) => {
+                println!("   >> {:?}", &err);
+                ErrorMessage {
+                    message: "Internal Server Error".to_string(),
+                    status: None,
+                    hint: Some(
+                        "An Unknown Error occurred, please report it to proper people".to_string(),
+                    ),
+                }
             },
         };
         let serialized = serde_json::to_string(&ResponseSchema {
