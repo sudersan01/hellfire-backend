@@ -23,6 +23,7 @@ impl<'r> FromRequest<'r> for AuthTokenGuard {
                 ErrorMessage {
                     message: "Authentication Failed, no token found".to_string(),
                     status: Some(Status::BadRequest),
+                    hint: Some("You are not logged-in, Please logged in and try this action again".to_string())
                 },
             )));
         }
@@ -33,6 +34,7 @@ impl<'r> FromRequest<'r> for AuthTokenGuard {
                 ErrorMessage {
                     message: "No Auth Header".to_string(),
                     status: Some(Status::BadRequest),
+                    hint: Some("Sorry, the request is invalid because the server couldn't verify you, are you sure you're logged in?".to_string())
                 },
             )));
         }
@@ -44,6 +46,7 @@ impl<'r> FromRequest<'r> for AuthTokenGuard {
                 ErrorMessage {
                     message: "Invald Token".to_string(),
                     status: Some(Status::BadRequest),
+                    hint: Some("Your login session has expired, try logging out and logging in".to_string())
                 },
             )));
         }

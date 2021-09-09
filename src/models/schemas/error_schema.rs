@@ -21,6 +21,8 @@ pub struct ErrorMessage {
     pub message: String,
     #[serde(skip)]
     pub status: Option<Status>,
+    #[serde(skip)]
+    pub hint: Option<String>
 }
 
 impl<'r> Responder<'r, 'static> for HFError {
@@ -30,12 +32,13 @@ impl<'r> Responder<'r, 'static> for HFError {
             _ => ErrorMessage {
                 message: "Internal Server Error".to_string(),
                 status: None,
+                hint: Some("An Unknown Error occurred, please report it to proper people".to_string())
             },
         };
         let serialized = serde_json::to_string(&ResponseSchema {
             status: ServerResponseStatus::new(mes.status.unwrap_or(Status::InternalServerError)),
             data: &mes,
-            hint: Some("hint".to_string()),
+            hint: mes.hint.clone(),
         })
         .unwrap_or(json!({"error": "json parsing error"}).to_string());
         Response::build()

@@ -1,7 +1,5 @@
-use mongodb::bson;
+use mongodb::bson::{self, Document};
 use rocket::serde::{Deserialize, Serialize};
-
-use super::block::Block;
 
 #[derive(Debug, Deserialize, Serialize, Default)]
 #[serde(crate = "rocket::serde")]
@@ -10,5 +8,5 @@ pub struct Post {
     pub id: Option<bson::oid::ObjectId>,
     pub slug: String,
     pub author: Option<bson::oid::ObjectId>,
-    pub content: Option<Block>
+    pub content: Option<Document>
 }

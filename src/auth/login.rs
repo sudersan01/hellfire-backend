@@ -42,8 +42,9 @@ pub async fn login(
     let res = db.find_one(doc! {"name": &req.email}, None).await?;
     if res.is_none() {
         return Err(HFError::CustomError(ErrorMessage {
-            message: "User not found".to_string(),
+            message: "Incorrect Email or Password".to_string(),
             status: Some(Status::BadRequest),
+            hint: Some("Your Email/Password does not match our database".to_string())
         }));
     }
     let user = res.unwrap();
@@ -51,8 +52,9 @@ pub async fn login(
     let hash = argon2.hash_password_simple(req.password.as_bytes(), &user.salt)?;
     if hash.to_string() != user.password {
         return Err(HFError::CustomError(ErrorMessage {
-            message: "Incorrect Password".to_string(),
+            message: "Incorrect Email or Password".to_string(),
             status: Some(Status::BadRequest),
+            hint: Some("Your Email/Password does not match our database".to_string())
         }));
     }
     let key: &[u8; 32] = key;
