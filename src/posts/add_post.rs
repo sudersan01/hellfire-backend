@@ -2,23 +2,14 @@ use mongodb::{Client, bson::doc};
 use rocket::{http::Status, serde::json::Json, State};
 use regex::Regex;
 
-use crate::{
-    auth_guard,
-    guards::auth_guard::AuthTokenGuard,
-    models::{
-        entities::post::Post,
-        schemas::{
+use crate::{DbOptions, auth_guard, guards::auth_guard::AuthTokenGuard, models::{entities::{post::Post, user::{PublicUser, UserModel}}, schemas::{
             error_schema::{ErrorMessage, HFError},
             response_schema::HFResponse,
-        },
-    },
-    utils::HFResult,
-    DbOptions,
-};
+        }}, utils::HFResult};
 
 #[post("/post/new", data = "<post>")]
 pub async fn add_post(
-    post: Json<Post>,
+    mut post: Json<Post>,
     opt: &State<DbOptions>,
     user: AuthTokenGuard,
 ) -> HFResult<String> {
@@ -33,19 +24,27 @@ pub async fn add_post(
             message: "invalid slug".to_string(),
         }));
     }
+    let database = Client::with_options(opt.options.clone())?
+    .database("hellfire");
 
-    let db = Client::with_options(opt.options.clone())?
-        .database("hellfire")
+    let authors = database.collection::<UserModel>("users");
+    let author = authors.find_one(doc! {
+        "name": _val
+    }, None).await?;
+
+    post.author = Some(PublicUser::from(author.unwrap()));
+
+    let posts = database
         .collection::<Post>("posts");
 
-    if db.find_one(doc! {"slug": &post.slug}, None).await?.is_some() {
+    if posts.find_one(doc! {"slug": &post.slug}, None).await?.is_some() {
         return Err(HFError::CustomError(ErrorMessage {
             status: Some(Status::BadRequest),
             hint: Some("The given slug already exists".to_string()),
             message: "invalid slug".to_string(),
         }));
     }
-    let res = db.insert_one(&post.into_inner(), None).await?;
+    let res = posts.insert_one(&post.into_inner(), None).await?;
 
     Ok(HFResponse {
         status: None,

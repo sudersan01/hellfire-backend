@@ -15,3 +15,16 @@ pub struct UserModel {
     pub salt: String,
     pub auth_token: Option<String>
 }
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(crate = "rocket::serde")]
+pub struct PublicUser {
+    pub id: Option<bson::oid::ObjectId>,
+    pub name: String,
+}
+
+impl From<UserModel> for PublicUser {
+    fn from(val: UserModel) -> Self {
+        PublicUser { id: val.id, name: val.name }
+    }
+}

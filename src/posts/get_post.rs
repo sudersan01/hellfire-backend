@@ -30,14 +30,14 @@ pub async fn get_all_posts(opts: &State<DbOptions>) -> HFResult<GetAllPostRespon
             None,
             FindOptions::builder()
                 .projection(Some(doc! {
-                    "slug": 1
+                    "content": 0
                 }))
                 .build(),
         )
         .await?;
     let mut result = Vec::<Document>::new();
     while let Some(mut x) = res.try_next().await? {
-        x.insert("author", "dhukka");
+        // x.insert("author", "dhukka");
         result.push(x);
     }
 
