@@ -4,6 +4,7 @@ use mongodb::{bson::doc, Client};
 use rocket::http::Status;
 use rocket::serde::{json::Json, Deserialize, Serialize};
 use rocket::State;
+use std::time::SystemTime;
 
 use crate::utils::HFResult;
 use crate::{
@@ -59,6 +60,10 @@ pub async fn login(
     }
     let key: &[u8; 32] = key;
     let mut token = Branca::new(key).unwrap();
+    let ts = SystemTime::now()
+        .duration_since(SystemTime::UNIX_EPOCH);
+    let timestamp = ts.unwrap();
+    println!("{:?}", timestamp);
     let ciphertext = token.encode(user.name.as_bytes()).unwrap();
 
 

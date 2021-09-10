@@ -1,17 +1,7 @@
 use mongodb::{Client, bson::{Document, doc}, options::FindOptions};
-use rocket::{
-    futures::TryStreamExt,
-    serde::{Deserialize, Serialize},
-    State,
-};
+use rocket::{State, futures::TryStreamExt, http::Status, serde::{Deserialize, Serialize}};
 
-use crate::{
-    models::{
-        schemas::response_schema::HFResponse,
-    },
-    utils::HFResult,
-    DbOptions,
-};
+use crate::{DbOptions, models::{entities::post::Post, schemas::{error_schema::{ErrorMessage, HFError}, response_schema::HFResponse}}, utils::HFResult};
 
 #[derive(Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
@@ -45,5 +35,33 @@ pub async fn get_all_posts(opts: &State<DbOptions>) -> HFResult<GetAllPostRespon
         status: None,
         error_hint_message: None,
         response: GetAllPostResponse { posts: result },
+    })
+}
+
+#[get("/<slug>")]
+pub async fn get_post_detail(slug: String, opts: &State<DbOptions>) -> HFResult<Post> {
+    let db = Client::with_options(opts.options.clone())?
+        .database("hellfire")
+        .collection::<Post>("posts");
+
+    let res = db
+        .find_one(
+            doc! {"slug":slug},
+        None,
+        )
+        .await?;
+
+    if res.is_none() {
+        return Err(HFError::CustomError(ErrorMessage{
+            message:"Post not found".to_string(),
+            status:Some(Status::NotFound),
+            hint: Some("Post not found!!!".to_string())
+        }))
+    }
+
+    Ok(HFResponse {
+        status: None,
+        error_hint_message: None,
+        response: res.unwrap(),
     })
 }
